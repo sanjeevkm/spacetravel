@@ -1,13 +1,15 @@
 package com.otto.spacetravel;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import com.otto.spacetravel.data.DataLoader;
 import com.otto.spacetravel.data.DummyDataLoader;
 import com.otto.spacetravel.exception.RouteNotFoundException;
-import com.otto.spacetravel.filter.RouteFilter;
 import com.otto.spacetravel.logic.Graph;
 import com.otto.spacetravel.logic.OttoRouteFinder;
 import com.otto.spacetravel.model.NodeDetail;
@@ -77,21 +79,25 @@ public class App {
 		}
 
 		List<Route> routeList = null;
-		RouteFilter filter = null;
+		List<Function<List<Route>, List<Route>>> filters = null;
 		// Exercise 6: Determine all routes starting at Sirius and ending at Sirius with
 		// maximum of 3 stops
 		System.out.println("Exercise 6");
-		filter = new RouteFilter();
-		filter.setMaxNumberOfStops(3);
-		routeList = routeFinder.findRoutes(NodeDetail.SIRIUS, NodeDetail.SIRIUS, filter);
+		filters = new ArrayList<>();
+		// Added +1 for source
+		filters.add(x -> x.stream().filter(y -> (y.getNodeList().size() <= 3 + 1)).collect(Collectors.toList()));
+		
+		routeList = routeFinder.findRoutes(NodeDetail.SIRIUS, NodeDetail.SIRIUS, filters);
 		routeList.stream().forEach(System.out::println);
 
 		// Exercise 7: Determine the number of routes starting at the solar system and
 		// ending at Sirius with exactly 3 stops inbetween
 		System.out.println("Exercise 7");
-		filter = new RouteFilter();
-		filter.setExactNumberOfStops(3);
-		routeList = routeFinder.findRoutes(NodeDetail.SOLAR_SYSTEM, NodeDetail.SIRIUS, filter);
+		filters = new ArrayList<>();
+		// Added +1 for source
+		filters.add(x -> x.stream().filter(y -> (y.getNodeList().size() == 3 + 1)).collect(Collectors.toList()));
+
+		routeList = routeFinder.findRoutes(NodeDetail.SOLAR_SYSTEM, NodeDetail.SIRIUS, filters);
 		routeList.stream().forEach(System.out::println);
 
 		// Excercise 8: Determine the duration of the shortest routes (in traveltime)
@@ -109,9 +115,10 @@ public class App {
 		// Exercise 10: Determine all different routes starting at Sirius and ending at
 		// Sirius with an over traveltime less than 30.
 		System.out.println("Exercise 10");
-		filter = new RouteFilter();
-		filter.setMaxHoursAllowed(30);
-		routeList = routeFinder.findRoutes(NodeDetail.SIRIUS, NodeDetail.SIRIUS, filter);
+		filters = new ArrayList<>();
+		filters.add(x -> x.stream().filter(y -> (y.getHours() <= 30)).collect(Collectors.toList()));
+
+		routeList = routeFinder.findRoutes(NodeDetail.SIRIUS, NodeDetail.SIRIUS, filters);
 		routeList.stream().forEach(System.out::println);
 	}
 

@@ -6,11 +6,11 @@ import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import com.otto.spacetravel.RouteFinder;
 import com.otto.spacetravel.exception.RouteNotFoundException;
-import com.otto.spacetravel.filter.RouteFilter;
 import com.otto.spacetravel.model.NodeDetail;
 import com.otto.spacetravel.model.Route;
 
@@ -76,13 +76,13 @@ public class OttoRouteFinder implements RouteFinder {
 
 	/*
 	 * Find routes between source and destination based on filter conditions. First
-	 * it gets all routes then applues filter on that.
+	 * it gets all routes then applies filter on that.
 	 * 
 	 * TODO: Can integrate filter in route finding algorithm to avoid calculating
 	 * routes discard later based on filter.
 	 */
 	@Override
-	public List<Route> findRoutes(NodeDetail source, NodeDetail destination, RouteFilter filter)
+	public List<Route> findRoutes(NodeDetail source, NodeDetail destination, List<Function<List<Route>, List<Route>>> filters)
 			throws RouteNotFoundException {
 		validateNode(source, destination);
 
@@ -93,8 +93,10 @@ public class OttoRouteFinder implements RouteFinder {
 		}
 
 		// If filter is null then no further processing is required.
-		if (filter != null) {
-			routeList = applyFilter(routeList, filter);
+		if (filters != null) {
+			for(Function<List<Route>, List<Route>> filter: filters) {
+				routeList = filter.apply(routeList);
+			}
 		}
 
 		return routeList;
@@ -151,30 +153,6 @@ public class OttoRouteFinder implements RouteFinder {
 
 		visited[start] = true;
 		find(start, end, "", visited, routeList, 0);
-
-		return routeList;
-	}
-
-	/*
-	 * Apply filter(s) on return reouteList and return final routeList
-	 */
-	private List<Route> applyFilter(List<Route> routeList, RouteFilter filter) {
-		// Added +1 for source
-		if (filter.getMaxNumberOfStops() != null) {
-			routeList = routeList.stream().filter(x -> (x.getNodeList().size() <= filter.getMaxNumberOfStops() + 1))
-					.collect(Collectors.toList());
-		}
-
-		// Added +1 for source
-		if (filter.getExactNumberOfStops() != null) {
-			routeList = routeList.stream().filter(x -> (x.getNodeList().size() == filter.getExactNumberOfStops() + 1))
-					.collect(Collectors.toList());
-		}
-
-		if (filter.getMaxHoursAllowed() != null) {
-			routeList = routeList.stream().filter(x -> (x.getHours() <= filter.getMaxHoursAllowed()))
-					.collect(Collectors.toList());
-		}
 
 		return routeList;
 	}

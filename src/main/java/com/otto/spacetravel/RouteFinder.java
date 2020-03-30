@@ -1,9 +1,9 @@
 package com.otto.spacetravel;
 
 import java.util.List;
+import java.util.function.Function;
 
 import com.otto.spacetravel.exception.RouteNotFoundException;
-import com.otto.spacetravel.filter.RouteFilter;
 import com.otto.spacetravel.model.NodeDetail;
 import com.otto.spacetravel.model.Route;
 
@@ -21,7 +21,7 @@ public interface RouteFinder {
 	/*
 	 * Find routes between source and destination based on filter conditions.
 	 */
-	List<Route> findRoutes(NodeDetail source, NodeDetail destination, RouteFilter filter) throws RouteNotFoundException;
+	List<Route> findRoutes(NodeDetail source, NodeDetail destination, List<Function<List<Route>, List<Route>>> filters) throws RouteNotFoundException;
 
 	/*
 	 * Get shortest travel time between source and destination.

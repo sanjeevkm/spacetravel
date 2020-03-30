@@ -3,8 +3,11 @@ package com.otto.spacetravel;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -12,7 +15,6 @@ import org.junit.Test;
 import com.otto.spacetravel.data.DataLoader;
 import com.otto.spacetravel.data.DummyDataLoader;
 import com.otto.spacetravel.exception.RouteNotFoundException;
-import com.otto.spacetravel.filter.RouteFilter;
 import com.otto.spacetravel.logic.Graph;
 import com.otto.spacetravel.logic.OttoRouteFinder;
 import com.otto.spacetravel.model.NodeDetail;
@@ -133,7 +135,7 @@ public class OttoRouteFinderTest {
 
 	@Test(expected = Exception.class)
 	public void test_findRoutes_nullDestinationInput() throws Exception {
-		routeFinder.findRoutes(NodeDetail.SOLAR_SYSTEM, null, new RouteFilter());
+		routeFinder.findRoutes(NodeDetail.SOLAR_SYSTEM, null, null);
 	}
 
 	@Test
@@ -147,9 +149,11 @@ public class OttoRouteFinderTest {
 	// maximum of 3 stops
 	@Test
 	public void test_findRoutes_exercise6() throws Exception {
-		RouteFilter filter = new RouteFilter();
-		filter.setMaxNumberOfStops(3);
-		List<Route> routeList = routeFinder.findRoutes(NodeDetail.SIRIUS, NodeDetail.SIRIUS, filter);
+		List<Function<List<Route>, List<Route>>> filters = new ArrayList<>();
+		// Added +1 for source
+		filters.add(x -> x.stream().filter(y -> (y.getNodeList().size() <= 3 + 1)).collect(Collectors.toList()));
+
+		List<Route> routeList = routeFinder.findRoutes(NodeDetail.SIRIUS, NodeDetail.SIRIUS, filters);
 
 		assertNotNull(routeList);
 		assertEquals(2, routeList.size());
@@ -160,9 +164,11 @@ public class OttoRouteFinderTest {
 	// ending at Sirius with exactly 3 stops inbetween
 	@Test
 	public void test_findRoutes_exercise7() throws Exception {
-		RouteFilter filter = new RouteFilter();
-		filter.setExactNumberOfStops(3);
-		List<Route> routeList = routeFinder.findRoutes(NodeDetail.SOLAR_SYSTEM, NodeDetail.SIRIUS, filter);
+		List<Function<List<Route>, List<Route>>> filters = new ArrayList<>();
+		// Added +1 for source
+		filters.add(x -> x.stream().filter(y -> (y.getNodeList().size() == 3 + 1)).collect(Collectors.toList()));
+
+		List<Route> routeList = routeFinder.findRoutes(NodeDetail.SOLAR_SYSTEM, NodeDetail.SIRIUS, filters);
 
 		assertNotNull(routeList);
 		assertEquals(1, routeList.size());
@@ -173,9 +179,11 @@ public class OttoRouteFinderTest {
 	// Sirius with an over traveltime less than 30.
 	@Test
 	public void test_findRoutes_exercise10() throws Exception {
-		RouteFilter filter = new RouteFilter();
-		filter.setMaxHoursAllowed(30);
-		List<Route> routeList = routeFinder.findRoutes(NodeDetail.SIRIUS, NodeDetail.SIRIUS, filter);
+		List<Function<List<Route>, List<Route>>> filters = new ArrayList<>();
+		// Added +1 for source
+		filters.add(x -> x.stream().filter(y -> (y.getHours() <= 30)).collect(Collectors.toList()));
+
+		List<Route> routeList = routeFinder.findRoutes(NodeDetail.SIRIUS, NodeDetail.SIRIUS, filters);
 
 		assertNotNull(routeList);
 		assertEquals(7, routeList.size());
